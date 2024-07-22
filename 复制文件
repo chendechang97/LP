@@ -1,11 +1,10 @@
 import os
 import re
 
-
 def replace_datatype_mappings(file_path, new_text):
     """Replace /DataTypes/DataTypeMappings/随机值 with new_text in the specified file."""
     pattern = r'/DataTypes/DataTypeMappings/\d+'
-
+    
     with open(file_path, 'r', encoding='utf-8') as file:
         file_content = file.read()
 
@@ -17,7 +16,6 @@ def replace_datatype_mappings(file_path, new_text):
     else:
         print(f"No datatype mappings to replace in file: {file_path}")
 
-
 def process_files_in_directory(directory, file_suffix, new_text):
     """Process all files in the directory with the specified suffix and replace /DataTypes/DataTypeMappings/随机值 with new_text."""
     for root, dirs, files in os.walk(directory):
@@ -26,12 +24,17 @@ def process_files_in_directory(directory, file_suffix, new_text):
                 file_path = os.path.join(root, filename)
                 replace_datatype_mappings(file_path, new_text)
 
+def process_multiple_directories(directories, file_suffix, new_text):
+    """Process files in multiple directories with the specified suffix and replace /DataTypes/DataTypeMappings/随机值 with new_text."""
+    for directory in directories:
+        print(f"Processing directory: {directory}")
+        process_files_in_directory(directory, file_suffix, new_text)
 
 # 指定要处理的文件夹路径
-directory_path = './test/1'
+directory_paths = ['path/to/first_directory', 'path/to/second_directory']
 
 # 要替换的新文本
 new_text = 'SWC_Composition_redunDataTypeMappingsSet'
 
 # 处理所有后缀为 _component.arxml 的文件
-process_files_in_directory(directory_path, '_component.arxml', new_text)
+process_multiple_directories(directory_paths, '_component.arxml', new_text)
