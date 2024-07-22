@@ -1,52 +1,37 @@
 import os
-import shutil
+import re
 
-def delete_files_with_name(directory, filenames_to_delete):
-    """Delete all specified files in the directory and return their directory paths."""
-    deleted_file_paths = set()
+
+def replace_datatype_mappings(file_path, new_text):
+    """Replace /DataTypes/DataTypeMappings/随机值 with new_text in the specified file."""
+    pattern = r'/DataTypes/DataTypeMappings/\d+'
+
+    with open(file_path, 'r', encoding='utf-8') as file:
+        file_content = file.read()
+
+    if re.search(pattern, file_content):
+        file_content = re.sub(pattern, f'/DataTypes/DataTypeMappings/{new_text}', file_content)
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(file_content)
+        print(f"Replaced datatype mappings in file: {file_path}")
+    else:
+        print(f"No datatype mappings to replace in file: {file_path}")
+
+
+def process_files_in_directory(directory, file_suffix, new_text):
+    """Process all files in the directory with the specified suffix and replace /DataTypes/DataTypeMappings/随机值 with new_text."""
     for root, dirs, files in os.walk(directory):
         for filename in files:
-            if filename in filenames_to_delete:
+            if filename.endswith(file_suffix):
                 file_path = os.path.join(root, filename)
-                os.remove(file_path)
-                deleted_file_paths.add(root)
-                print(f"Deleted file: {file_path}")
-    return deleted_file_paths
-
-def copy_files_to_directories(source_directory, source_filenames, target_directories):
-    """Copy the specified files from the source directory to each of the target directories."""
-    for source_filename in source_filenames:
-        source_file_path = os.path.join(source_directory, source_filename)
-        if not os.path.isfile(source_file_path):
-            print(f"Source file does not exist: {source_file_path}")
-            continue
-
-        for target_directory in target_directories:
-            if not os.path.exists(target_directory):
-                os.makedirs(target_directory)
-
-            target_file_path = os.path.join(target_directory, source_filename)
-            shutil.copy2(source_file_path, target_file_path)
-            print(f"Copied file from {source_file_path} to {target_file_path}")
-
-def process_files(delete_folder, redun_folder, datatype_filenames, interface_filenames):
-    """Delete specified datatype and interface files from delete_folder and move/copy matching redun files from redun_folder to the same directories."""
-    # 删除指定的文件并获取其所在目录路径
-    deleted_file_paths = delete_files_with_name(delete_folder, datatype_filenames + interface_filenames)
-
-    # 将 redun 文件从 redun_folder 复制到 deleted_file_paths 中的目录
-    copy_files_to_directories(redun_folder, datatype_filenames, deleted_file_paths)
-    copy_files_to_directories(redun_folder, interface_filenames, deleted_file_paths)
-
-# 指定删除文件夹和红文件夹路径
-delete_folder = 'D:/PyCharm/User/pythonProject/test/1'
-redun_folder = 'D:/PyCharm/User/pythonProject/test/2'
-
-# 要删除的文件名
-datatype_filenames = ['SWC_Arch_datatype.arxml', 'SWC_Composition_redun_datatype.arxml']
-interface_filenames = ['SWC_Arch_interface.arxml', 'SWC_Composition_redun_interface.arxml']
-
-# 执行处理
-process_files(delete_folder, redun_folder, datatype_filenames, interface_filenames)
+                replace_datatype_mappings(file_path, new_text)
 
 
+# 指定要处理的文件夹路径
+directory_path = './test/1'
+
+# 要替换的新文本
+new_text = 'SWC_Composition_redunDataTypeMappingsSet'
+
+# 处理所有后缀为 _component.arxml 的文件
+process_files_in_directory(directory_path, '_component.arxml', new_text)
