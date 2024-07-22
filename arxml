@@ -1,69 +1,68 @@
-import xml.etree.ElementTree as ET
-import copy
+import os
+import re
 
-def extract_ports_content(source_file):
-    """Extract the contents within the <PORTS> tag from the source ARXML file."""
-    try:
-        tree = ET.parse(source_file)
-    except ET.ParseError as e:
-        print(f"Error parsing {source_file}: {e}")
-        return None
-    
-    root = tree.getroot()
-    
-    # 找到源文件中的<PORTS>标签
-    ports = root.find('.//PORTS')
-    
-    if ports is None:
-        print("No <PORTS> tag found in the source file.")
-        return None
-    
-    # 深拷贝<PORTS>标签的所有子元素
-    ports_content = [copy.deepcopy(child) for child in ports]
-    
-    return ports_content
 
-def insert_ports_content(target_file, ports_content):
+def extract_ports_content_text(source_file):
+    """Extract the contents within the <PORTS> tag from the source ARXML file as text."""
+    with open(source_file, 'r', encoding='utf-8') as file:
+        content = file.read()
+
+    # 使用正则表达式提取<PORTS>标签中的内容
+    match = re.search(r'<PORTS>(.*?)</PORTS>', content, re.DOTALL)
+
+    if not match:
+        raise ValueError(f"No <PORTS> tag found in the source file {source_file}.")
+
+    return match.group(1)  # 返回<PORTS>标签中的内容
+
+
+def insert_ports_content_text(target_file, ports_content):
     """Insert the extracted <PORTS> contents into the target ARXML file."""
-    try:
-        tree = ET.parse(target_file)
-    except ET.ParseError as e:
-        print(f"Error parsing {target_file}: {e}")
-        return False
-    
-    root = tree.getroot()
-    
-    # 找到目标文件中的<PORTS>标签
-    target_ports = root.find('.//PORTS')
-    
-    if target_ports is None:
-        print("No <PORTS> tag found in the target file.")
-        return False
-    
-    # 清空目标<PORTS>标签的现有内容
-    for child in list(target_ports):
-        target_ports.remove(child)
-    
-    # 将源文件的<PORTS>内容插入到目标<PORTS>标签中
-    for elem in ports_content:
-        target_ports.append(elem)
-    
-    tree.write(target_file, xml_declaration=True, encoding='UTF-8')
-    return True
+    with open(target_file, 'r', encoding='utf-8') as file:
+        content = file.read()
 
-def copy_ports_content(source_file, target_file):
-    ports_content = extract_ports_content(source_file)
-    if ports_content is None:
-        print("Failed to extract <PORTS> content from the source file.")
-        return
-    
-    success = insert_ports_content(target_file, ports_content)
-    if not success:
-        print("Failed to insert <PORTS> content into the target file.")
+    # 使用正则表达式替换<PORTS>标签中的内容
+    new_content, num_subs = re.subn(r'(<PORTS>).*?(</PORTS>)', rf'\1{ports_content}\2', content, flags=re.DOTALL)
 
-# 示例文件路径
-source_file = 'source.arxml'
-target_file = 'target.arxml'
+    if num_subs == 0:
+        raise ValueError(f"No <PORTS> tag found in the target file {target_file}.")
 
-# 执行内容复制
-copy_ports_content(source_file, target_file)
+    with open(target_file, 'w', encoding='utf-8') as file:
+        file.write(new_content)
+
+
+def copy_ports_content_text(source_file, target_file):
+    """Extract <PORTS> content from source_file and insert it into target_file."""
+    ports_content = extract_ports_content_text(source_file)
+    insert_ports_content_text(target_file, ports_content)
+
+
+def process_folders(source_folder, target_folder):
+    """Process all files in source_folder and replace <PORTS> content in corresponding files in target_folder."""
+    for filename in os.listdir(source_folder):
+        if filename.endswith('_component.arxml'):
+            # 构建源文件路径
+            source_file = os.path.join(source_folder, filename)
+
+            # 构建目标文件路径
+            target_filename = filename.replace('_component.arxml', '_redun_component.arxml')
+            target_file = os.path.join(target_folder, target_filename)
+
+            if os.path.exists(target_file):
+                print(f"Processing source file: {source_file}")
+                print(f"Processing target file: {target_file}")
+                try:
+                    copy_ports_content_text(source_file, target_file)
+                    print(f"Successfully copied <PORTS> content from {source_file} to {target_file}")
+                except ValueError as e:
+                    print(f"Error processing files {source_file} and {target_file}: {e}")
+            else:
+                print(f"Target file {target_file} does not exist in the target folder. Skipping...")
+
+
+# 指定源文件夹和目标文件夹路径
+source_folder = './test/1'
+target_folder = './test/2'
+
+# 执行处理
+process_folders(source_folder, target_folder)
