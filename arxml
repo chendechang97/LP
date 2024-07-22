@@ -1,0 +1,50 @@
+import xml.etree.ElementTree as ET
+import copy
+
+def extract_ports_content(source_file):
+    """Extract the contents within the <PORTS> tag from the source ARXML file."""
+    tree = ET.parse(source_file)
+    root = tree.getroot()
+    
+    # 找到源文件中的<PORTS>标签
+    ports = root.find('.//PORTS')
+    
+    if ports is None:
+        raise ValueError("No <PORTS> tag found in the source file.")
+    
+    # 深拷贝<PORTS>标签的所有子元素
+    ports_content = [copy.deepcopy(child) for child in ports]
+    
+    return ports_content
+
+def insert_ports_content(target_file, ports_content):
+    """Insert the extracted <PORTS> contents into the target ARXML file."""
+    tree = ET.parse(target_file)
+    root = tree.getroot()
+    
+    # 找到目标文件中的<PORTS>标签
+    target_ports = root.find('.//PORTS')
+    
+    if target_ports is None:
+        raise ValueError("No <PORTS> tag found in the target file.")
+    
+    # 清空目标<PORTS>标签的现有内容
+    for child in list(target_ports):
+        target_ports.remove(child)
+    
+    # 将源文件的<PORTS>内容插入到目标<PORTS>标签中
+    for elem in ports_content:
+        target_ports.append(elem)
+    
+    tree.write(target_file, xml_declaration=True, encoding='UTF-8')
+
+def copy_ports_content(source_file, target_file):
+    ports_content = extract_ports_content(source_file)
+    insert_ports_content(target_file, ports_content)
+
+# 示例文件路径
+source_file = 'source.arxml'
+target_file = 'target.arxml'
+
+# 执行内容复制
+copy_ports_content(source_file, target_file)
