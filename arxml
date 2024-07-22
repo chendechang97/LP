@@ -1,53 +1,49 @@
 import os
 import re
 
-
 def extract_ports_content_text(source_file):
     """Extract the contents within the <PORTS> tag from the source ARXML file as text."""
     with open(source_file, 'r', encoding='utf-8') as file:
         content = file.read()
-
+    
     # 使用正则表达式提取<PORTS>标签中的内容
     match = re.search(r'<PORTS>(.*?)</PORTS>', content, re.DOTALL)
-
+    
     if not match:
         raise ValueError(f"No <PORTS> tag found in the source file {source_file}.")
-
+    
     return match.group(1)  # 返回<PORTS>标签中的内容
-
 
 def insert_ports_content_text(target_file, ports_content):
     """Insert the extracted <PORTS> contents into the target ARXML file."""
     with open(target_file, 'r', encoding='utf-8') as file:
         content = file.read()
-
+    
     # 使用正则表达式替换<PORTS>标签中的内容
     new_content, num_subs = re.subn(r'(<PORTS>).*?(</PORTS>)', rf'\1{ports_content}\2', content, flags=re.DOTALL)
-
+    
     if num_subs == 0:
         raise ValueError(f"No <PORTS> tag found in the target file {target_file}.")
-
+    
     with open(target_file, 'w', encoding='utf-8') as file:
         file.write(new_content)
-
 
 def copy_ports_content_text(source_file, target_file):
     """Extract <PORTS> content from source_file and insert it into target_file."""
     ports_content = extract_ports_content_text(source_file)
     insert_ports_content_text(target_file, ports_content)
 
-
 def process_folders(source_folder, target_folder):
     """Process all files in source_folder and replace <PORTS> content in corresponding files in target_folder."""
     for filename in os.listdir(source_folder):
-        if filename.endswith('_component.arxml'):
+        if filename.endswith('_redun_component.arxml'):
             # 构建源文件路径
             source_file = os.path.join(source_folder, filename)
-
+            
             # 构建目标文件路径
-            target_filename = filename.replace('_component.arxml', '_redun_component.arxml')
+            target_filename = filename.replace('_redun_component.arxml', '_component.arxml')
             target_file = os.path.join(target_folder, target_filename)
-
+            
             if os.path.exists(target_file):
                 print(f"Processing source file: {source_file}")
                 print(f"Processing target file: {target_file}")
@@ -59,10 +55,9 @@ def process_folders(source_folder, target_folder):
             else:
                 print(f"Target file {target_file} does not exist in the target folder. Skipping...")
 
-
 # 指定源文件夹和目标文件夹路径
-source_folder = './test/1'
-target_folder = './test/2'
+source_folder = 'path/to/source_folder'
+target_folder = 'path/to/target_folder'
 
 # 执行处理
 process_folders(source_folder, target_folder)
