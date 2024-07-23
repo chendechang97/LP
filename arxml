@@ -71,6 +71,27 @@ def copy_filtered_files(swc_target_folder, swc_source_folder, arxml_folder):
         else:
             print(f"{filename} does not exist in {swc_source_folder}")
 
+def copy_bsw_files(bsw_source_folder, bsw_target_folder, cdd_folder):
+    """Copy specific files from bsw_source_folder and bsw_target_folder to cdd_folder."""
+    if not os.path.exists(cdd_folder):
+        os.makedirs(cdd_folder)
+    
+    # Copy all _datatype.arxml files from bsw_source_folder
+    for filename in os.listdir(bsw_source_folder):
+        if filename.endswith('_datatype.arxml'):
+            source_file = os.path.join(bsw_source_folder, filename)
+            target_file = os.path.join(cdd_folder, filename)
+            shutil.copy2(source_file, target_file)
+            print(f"Copied {filename} from {bsw_source_folder} to {cdd_folder}")
+    
+    # Copy all _component.arxml and _implementation.arxml files from bsw_target_folder
+    for filename in os.listdir(bsw_target_folder):
+        if filename.endswith('_component.arxml') or filename.endswith('_implementation.arxml'):
+            source_file = os.path.join(bsw_target_folder, filename)
+            target_file = os.path.join(cdd_folder, filename)
+            shutil.copy2(source_file, target_file)
+            print(f"Copied {filename} from {bsw_target_folder} to {cdd_folder}")
+
 # 指定SWC源文件夹和目标文件夹路径
 swc_source_folder = 'path/to/swc_source_folder'
 swc_target_folder = 'path/to/swc_target_folder'
@@ -81,6 +102,9 @@ bsw_target_folder = 'path/to/bsw_target_folder'
 
 # 指定arxml文件夹路径
 arxml_folder = 'path/to/arxml_folder'
+
+# 指定cdd文件夹路径
+cdd_folder = 'path/to/cdd_folder'
 
 # 处理SWC文件夹
 print("Processing SWC folders...")
@@ -93,3 +117,7 @@ process_folders(bsw_source_folder, bsw_target_folder)
 # 复制处理好的文件到arxml文件夹
 print("Copying filtered files to arxml folder...")
 copy_filtered_files(swc_target_folder, swc_source_folder, arxml_folder)
+
+# 复制指定BSW文件到cdd文件夹
+print("Copying BSW files to cdd folder...")
+copy_bsw_files(bsw_source_folder, bsw_target_folder, cdd_folder)
