@@ -47,9 +47,18 @@ def process_folders(source_folder, target_folder):
             else:
                 print(f"Target file {target_file} does not exist in the target folder. Skipping...")
 
-# 指定源文件夹和目标文件夹路径
-source_folder = 'path/to/source_folder'
-target_folder = 'path/to/target_folder'
+# 指定SWC源文件夹和目标文件夹路径
+swc_source_folder = 'path/to/swc_source_folder'
+swc_target_folder = 'path/to/swc_target_folder'
 
-# 执行处理
-process_folders(source_folder, target_folder)
+# 指定BSW源文件夹和目标文件夹路径
+bsw_source_folder = 'path/to/bsw_source_folder'
+bsw_target_folder = 'path/to/bsw_target_folder'
+
+# 处理SWC文件夹
+print("Processing SWC folders...")
+process_folders(swc_source_folder, swc_target_folder)
+
+# 处理BSW文件夹
+print("Processing BSW folders...")
+process_folders(bsw_source_folder, bsw_target_folder)
